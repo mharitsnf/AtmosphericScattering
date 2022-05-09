@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>D:\Data\Courses\Computer Graphics and Interaction\Project\AtmosphericScattering\x64\Debug\ZERO_CHECK</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\Data\Courses\Computer Graphics and Interaction\Project\AtmosphericScattering\Debug\AtmosphericScattering.exe</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\Data\Courses\Computer Graphics and Interaction\Project\AtmosphericScattering\external\glew\bin\Debug\glew-sharedd.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>D:\Data\Courses\Computer Graphics and Interaction\Project\AtmosphericScattering\x64\Debug\ALL_BUILD</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles />
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\Data\Courses\Computer Graphics and Interaction\Project\AtmosphericScattering\CMakeFiles\798769189b99213b190a65a8d072d545\PACKAGE_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{B07213A9-2655-385D-8F0F-8FBD96181CE1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
