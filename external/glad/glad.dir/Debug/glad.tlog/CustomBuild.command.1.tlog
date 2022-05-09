@@ -1,6 +1,6 @@
-^D:\DATA\COURSES\COMPUTER GRAPHICS AND INTERACTION\PROJECT\ATMOSPHERICSCATTERING\EXTERNAL\GLAD\CMAKELISTS.TXT
+^C:\USERS\BEN\DOCUMENTS\GITHUB\ATMOSPHERICSCATTERING\EXTERNAL\GLAD\CMAKELISTS.TXT
 setlocal
-"C:\Program Files\CMake\bin\cmake.exe" "-SD:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering" "-BD:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering" --check-stamp-file "D:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering/external/glad/CMakeFiles/generate.stamp"
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Ben/Documents/GitHub/AtmosphericScattering -BC:/Users/Ben/Documents/GitHub/AtmosphericScattering --check-stamp-file C:/Users/Ben/Documents/GitHub/AtmosphericScattering/external/glad/CMakeFiles/generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

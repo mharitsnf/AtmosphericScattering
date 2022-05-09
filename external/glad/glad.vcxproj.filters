@@ -1,24 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="D:\Data\Courses\Computer Graphics and Interaction\Project\AtmosphericScattering\external\glad\src\glad.c">
+    <ClCompile Include="C:\Users\Ben\Documents\GitHub\AtmosphericScattering\external\glad\src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="D:\Data\Courses\Computer Graphics and Interaction\Project\AtmosphericScattering\external\glad\include\glad\glad.h">
+    <ClInclude Include="C:\Users\Ben\Documents\GitHub\AtmosphericScattering\external\glad\include\glad\glad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="D:\Data\Courses\Computer Graphics and Interaction\Project\AtmosphericScattering\external\glad\CMakeLists.txt" />
+    <CustomBuild Include="C:\Users\Ben\Documents\GitHub\AtmosphericScattering\external\glad\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{AA06D577-4739-3C91-90A6-EADE0D28AA72}</UniqueIdentifier>
+      <UniqueIdentifier>{F7388687-596F-3445-B331-A77A1D08BED8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{803797BB-8DBE-3444-A83F-6BE31D590F54}</UniqueIdentifier>
+      <UniqueIdentifier>{B05C7856-7D74-3D33-9C25-9CF39E46524E}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
