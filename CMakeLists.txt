@@ -27,11 +27,13 @@ endif()
 add_subdirectory(external/glfw)
 add_subdirectory(external/glew)
 add_subdirectory(external/glad)
+add_subdirectory(external/glm)
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC external/glfw/include
     PUBLIC external/glew/include
     PUBLIC external/glad/include
+    PUBLIC external/glm/glm
 )
 
 target_link_directories(${PROJECT_NAME}
@@ -40,4 +42,4 @@ target_link_directories(${PROJECT_NAME}
     PRIVATE external/glad/src
 )
 
-target_link_libraries(${PROJECT_NAME} glfw libglew_static glad)
+target_link_libraries(${PROJECT_NAME} glfw libglew_static glad glm)
