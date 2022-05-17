@@ -54,7 +54,7 @@ int main()
     std::vector<glm::vec3> objVertices;
 	std::vector<glm::vec2> objUvs;
 	std::vector<glm::vec3> objNormals; // Won't be used at the moment.
-	bool res = loadOBJ("../Blobber.obj", objVertices, objUvs, objNormals);
+	bool res = loadOBJ("../models/object1.obj", objVertices, objUvs, objNormals);
 
     float vertices[] = {
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
