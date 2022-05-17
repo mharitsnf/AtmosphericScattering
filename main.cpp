@@ -36,6 +36,20 @@ float lastFrame = 0.0f;
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
+
+// rectangle that covers the whole screen, for postprocessing purposes.
+float rectangleVertices[] =
+{
+	// Coords    // texCoords
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f, -1.0f,  0.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f,
+
+	 1.0f,  1.0f,  1.0f, 1.0f,
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f
+};
+
 int main()
 {
     // configuration
@@ -50,6 +64,7 @@ int main()
     // Shader ourShader("../shader.vs", "../shader.fs"); // you can name your shader files however you like
     Shader objectShader("../shaders/object.vs", "../shaders/object.fs");
     Shader lightingShader("../shaders/lighting.vs", "../shaders/lighting.fs");
+    Shader postProcessingShader("../shaders/postprocessing.vs", "../shaders/postprocessing.fs");
 
     std::vector<glm::vec3> objVertices;
 	std::vector<glm::vec2> objUvs;
@@ -100,6 +115,8 @@ int main()
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
 
+    // VAO and VBO for the object
+    // ------------------------------------
     unsigned int objectVAO, vertVBO, normalVBO;
     glGenVertexArrays(1, &objectVAO);
     glGenBuffers(1, &vertVBO);
@@ -119,6 +136,8 @@ int main()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
 
+    // VAO and VBO for the lighting
+    // ------------------------------------
     unsigned int lightCubeVAO, lightCubeVBO;
     glGenVertexArrays(1, &lightCubeVAO);
     glGenBuffers(1, &lightCubeVBO);
@@ -130,6 +149,51 @@ int main()
     // note that we update the lamp's position attribute's stride to reflect the updated buffer data
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    // frame buffer for postprocessing
+    // https://www.youtube.com/watch?v=QQ3jr-9Rc1o
+    // ------------------------------------
+    // Prepare framebuffer rectangle VBO and VAO
+	unsigned int postproVAO, postproVBO;
+	glGenVertexArrays(1, &postproVAO);
+	glGenBuffers(1, &postproVAO);
+    
+	glBindVertexArray(postproVAO);
+	
+    glBindBuffer(GL_ARRAY_BUFFER, postproVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), &rectangleVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+    // Create frame buffer object
+    unsigned int FBO;
+    glGenFramebuffers(1, &FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+    // Create Framebuffer Texture
+	unsigned int framebufferTexture;
+	glGenTextures(1, &framebufferTexture);
+	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+
+    // Create Render Buffer Object
+	unsigned int RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+    // Error checking framebuffer
+	int fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
+		cout << "Framebuffer error: " << fboStatus << endl;
 
 
     // render loop
@@ -148,8 +212,11 @@ int main()
 
         // render
         // ------
+        // Bind the custom framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
 
         objectShader.use();
         objectShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
@@ -184,6 +251,17 @@ int main()
 
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+        postProcessingShader.use();
+        postProcessingShader.setInt("screenTexture", 0);
+
+        // Bind the default framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindVertexArray(postproVAO);
+        glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
+		glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -239,7 +317,14 @@ int configure(GLFWwindow *&window)
 
     // configure global opengl state
     // -----------------------------
+    // Enables the Depth Buffer
     glEnable(GL_DEPTH_TEST);
+    // Enables Cull Facing
+	glEnable(GL_CULL_FACE);
+	// Keeps front faces
+	glCullFace(GL_FRONT);
+	// Uses counter clock-wise standard
+	glFrontFace(GL_CCW);
     return 0;
 }
 
