@@ -156,7 +156,7 @@ int main()
     // Prepare framebuffer rectangle VBO and VAO
 	unsigned int postproVAO, postproVBO;
 	glGenVertexArrays(1, &postproVAO);
-	glGenBuffers(1, &postproVAO);
+	glGenBuffers(1, &postproVBO);
     
 	glBindVertexArray(postproVAO);
 	
@@ -319,12 +319,6 @@ int configure(GLFWwindow *&window)
     // -----------------------------
     // Enables the Depth Buffer
     glEnable(GL_DEPTH_TEST);
-    // Enables Cull Facing
-	glEnable(GL_CULL_FACE);
-	// Keeps front faces
-	glCullFace(GL_FRONT);
-	// Uses counter clock-wise standard
-	glFrontFace(GL_CCW);
     return 0;
 }
 
