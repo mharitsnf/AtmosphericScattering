@@ -255,6 +255,8 @@ int main()
 
         postProcessingShader.use();
         postProcessingShader.setInt("screenTexture", 0);
+        postProcessingShader.setVec3("cameraPos", camera.Position);
+        postProcessingShader.setVec3("viewDir", camera.Front);
 
         // Bind the default framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
