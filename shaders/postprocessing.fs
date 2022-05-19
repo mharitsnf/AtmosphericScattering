@@ -21,20 +21,17 @@ vec2 raySphereIntersection (vec3 sphereCenter, float sphereRadius, vec3 rayOrigi
     float c = dot(offset, offset) - sphereRadius * sphereRadius;
     float d = b * b - 4 * a * c;
 
-    if (d <= 0) return vec2(FLT_MAX, 0);
-    else {
-        float q = (b > 0) ? -0.5 * (b + sqrt(d)) : -0.5 * (b - sqrt(d));
-        float x0 = q / a;
-        float x1 = c / q;
+    if (d > 0) {
+        float s = sqrt(d);
+        float dstToSphereNear = max(0, (-b - s) / (2 * a));
+        float dstToSphereFar = (-b + s) / (2 * a);
 
-        if (x0 > x1) {
-            float tmp = x0;
-            x0 = x1;
-            x1 = tmp;
+        if (dstToSphereFar >= 0) {
+            return vec2(dstToSphereNear, dstToSphereFar - dstToSphereNear);
         }
-
-        return vec2(x0, x1 - x0);
     }
+
+    return vec2(FLT_MAX, 0);
 }
 
 mat3 getYawMatrix() {
@@ -93,16 +90,32 @@ void main()
     vec2 uv = (texCoords - .5);
     uv.x *= resolution.x / resolution.y;
 
+    // With raytracing concepts
     vec3 rayOrigin = vec3(cameraPos.x, cameraPos.y, cameraPos.z);
     vec3 rayDirection = normalize(vec3(uv.x, uv.y, -1.));
     rayDirection = rayDirection * getPitchMatrix();
     rayDirection = rayDirection * getYawMatrix();
 
-    float lambda = rayMarch(rayOrigin, rayDirection);
-    lambda /= 6.;
-    vec3 rmCol = vec3(1. - lambda);
+    vec3 sphereCenter = vec3(5., 0., 0.);
+    float sphereRadius = 5.;
 
-    // FragColor = originalColor;
-    FragColor = vec4(rmCol, 1.);
-    FragColor = vec4(max(originalColor.xyz, rmCol), 1.);
+    vec2 hitInfo = raySphereIntersection(sphereCenter, sphereRadius, rayOrigin, rayDirection);
+    float dstToAtmosphere = hitInfo.x;
+    float dstThroughAtmosphere = hitInfo.y;
+
+    vec3 rtCol = vec3(dstThroughAtmosphere / (sphereRadius * 2.));
+
+    // Working raymarching code
+    // vec3 rayOrigin = vec3(cameraPos.x, cameraPos.y, cameraPos.z);
+    // vec3 rayDirection = normalize(vec3(uv.x, uv.y, -1.));
+    // rayDirection = rayDirection * getPitchMatrix();
+    // rayDirection = rayDirection * getYawMatrix();
+
+    // float lambda = rayMarch(rayOrigin, rayDirection);
+    // lambda /= 6.;
+    // vec3 rmCol = vec3(1. - lambda);
+
+    FragColor = originalColor;
+    // FragColor = vec4(rmCol, 1.);
+    FragColor = vec4(max(originalColor.xyz, rtCol), 1.);
 }
