@@ -34,7 +34,8 @@ float deltaTime = 0.0f; // time between current frame and last frame
 float lastFrame = 0.0f;
 
 // lighting
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+// glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightPos(.0f, .0f, .0f);
 
 
 // rectangle that covers the whole screen, for postprocessing purposes.
@@ -256,7 +257,14 @@ int main()
         postProcessingShader.use();
         postProcessingShader.setInt("screenTexture", 0);
         postProcessingShader.setVec3("cameraPos", camera.Position);
-        postProcessingShader.setVec3("viewDir", camera.Front);
+        postProcessingShader.setVec3("cameraFront", camera.Front);
+        postProcessingShader.setFloat("yaw", glm::radians(camera.PPYaw));
+        postProcessingShader.setFloat("pitch", glm::radians(camera.PPPitch));
+        postProcessingShader.setVec2("resolution", glm::vec2(SCR_WIDTH, SCR_HEIGHT));
+        postProcessingShader.setMat4("view", view);
+
+        cout << camera.Position.x << "," << camera.Position.y << "," << camera.Position.z << " " << camera.Pitch << " " << camera.PPPitch << endl;
+
 
         // Bind the default framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -264,7 +272,6 @@ int main()
         glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
 		glBindTexture(GL_TEXTURE_2D, framebufferTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
