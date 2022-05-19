@@ -38,11 +38,19 @@ vec2 raySphereIntersection (vec3 sphereCenter, float sphereRadius, vec3 rayOrigi
 }
 
 mat3 getYawMatrix() {
-    return mat3(1, 0, 0,   0, cos(yaw), -sin(yaw),   0, sin(yaw), cos(yaw));
+    return mat3(
+        cos(yaw), 0, sin(yaw),
+        0, 1, 0,
+        -sin(yaw), 0, cos(yaw)
+    );
 }
 
 mat3 getPitchMatrix() {
-    return mat3(1, 0, 0,   0, cos(pitch), -sin(pitch),   0, sin(pitch), cos(pitch));
+    return mat3(
+        1, 0, 0,
+        0, cos(pitch), -sin(pitch),
+        0, sin(pitch), cos(pitch)
+    );
 }
 
 float sdfSphere (vec3 point, vec3 position, float radius)
@@ -87,6 +95,8 @@ void main()
 
     vec3 rayOrigin = vec3(cameraPos.x, cameraPos.y, cameraPos.z);
     vec3 rayDirection = normalize(vec3(uv.x, uv.y, -1.));
+    rayDirection = rayDirection * getPitchMatrix();
+    rayDirection = rayDirection * getYawMatrix();
 
     float lambda = rayMarch(rayOrigin, rayDirection);
     lambda /= 6.;

@@ -259,12 +259,11 @@ int main()
         postProcessingShader.setVec3("cameraPos", camera.Position);
         postProcessingShader.setVec3("cameraFront", camera.Front);
         postProcessingShader.setFloat("yaw", glm::radians(camera.PPYaw));
-        postProcessingShader.setFloat("pitch", glm::radians(camera.PPPitch));
+        postProcessingShader.setFloat("pitch", glm::radians(camera.Pitch));
         postProcessingShader.setVec2("resolution", glm::vec2(SCR_WIDTH, SCR_HEIGHT));
         postProcessingShader.setMat4("view", view);
 
-        cout << camera.Position.x << "," << camera.Position.y << "," << camera.Position.z << " " << camera.Pitch << " " << camera.PPPitch << endl;
-
+        // cout << camera.PPYaw << " " << camera.Pitch << endl;
 
         // Bind the default framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

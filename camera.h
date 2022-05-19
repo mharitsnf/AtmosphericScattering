@@ -7,6 +7,8 @@
 
 #include <vector>
 
+using namespace std;
+
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement
 {
@@ -18,6 +20,7 @@ enum Camera_Movement
 
 // Default camera values
 const float YAW = -90.0f;
+const float PPYAW = 0.0f;
 const float PITCH = 0.0f;
 const float SPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
@@ -44,24 +47,24 @@ public:
     float Zoom;
 
     // constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH, float ppyaw = PPYAW) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
         Position = position;
         WorldUp = up;
         Yaw = yaw;
-        PPYaw = yaw;
         Pitch = pitch;
+        PPYaw = ppyaw;
         PPPitch = pitch;
         updateCameraVectors();
     }
     // constructor with scalar values
-    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+    Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch, float ppyaw = PPYAW) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
         Position = glm::vec3(posX, posY, posZ);
         WorldUp = glm::vec3(upX, upY, upZ);
         Yaw = yaw;
-        PPYaw = yaw;
         Pitch = pitch;
+        PPYaw = ppyaw;
         PPPitch = pitch;
         updateCameraVectors();
     }
@@ -93,11 +96,14 @@ public:
         xoffset *= MouseSensitivity;
         yoffset *= MouseSensitivity;
 
-        Yaw += xoffset;
-        PPYaw -= xoffset;
-        Pitch += yoffset;
-        PPPitch -= yoffset;
+        // cout << xoffset << " " << yoffset << endl;
 
+        Yaw += xoffset;
+        Pitch += yoffset;
+
+        PPYaw -= xoffset;
+        PPPitch -= yoffset;
+        
         // make sure that when pitch is out of bounds, screen doesn't get flipped
         if (constrainPitch)
         {
