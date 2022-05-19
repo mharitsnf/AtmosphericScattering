@@ -6,11 +6,9 @@ out vec4 FragColor;
 
 uniform sampler2D screenTexture;
 uniform vec3 cameraPos;
-uniform vec3 cameraFront;
 uniform float yaw;
 uniform float pitch;
 uniform vec2 resolution;
-uniform mat4 view;
 
 #define FLT_MAX 3.402823466e+38
 vec2 raySphereIntersection (vec3 sphereCenter, float sphereRadius, vec3 rayOrigin, vec3 rayDirection) {
@@ -79,10 +77,6 @@ float rayMarch(vec3 rayOrigin, vec3 rayDirection) {
     return dst;
 }
 
-// Current problems:
-// 1. if using viewDir as the rayDirection, it affects the whole screen instead of each pixel and
-// and moving the camera with w and s doesn't affect the sphere
-// 2. when using texCoords / uv coordinates, sphere moves but in a weird fashion
 void main()
 {
     vec4 originalColor = texture(screenTexture, texCoords.st);
@@ -90,12 +84,13 @@ void main()
     vec2 uv = (texCoords - .5);
     uv.x *= resolution.x / resolution.y;
 
-    // With raytracing concepts
+    // Ray origin and direction calculation
     vec3 rayOrigin = vec3(cameraPos.x, cameraPos.y, cameraPos.z);
     vec3 rayDirection = normalize(vec3(uv.x, uv.y, -1.));
     rayDirection = rayDirection * getPitchMatrix();
     rayDirection = rayDirection * getYawMatrix();
 
+    // With raytracing concepts
     vec3 sphereCenter = vec3(5., 0., 0.);
     float sphereRadius = 5.;
 
@@ -105,12 +100,7 @@ void main()
 
     vec3 rtCol = vec3(dstThroughAtmosphere / (sphereRadius * 2.));
 
-    // Working raymarching code
-    // vec3 rayOrigin = vec3(cameraPos.x, cameraPos.y, cameraPos.z);
-    // vec3 rayDirection = normalize(vec3(uv.x, uv.y, -1.));
-    // rayDirection = rayDirection * getPitchMatrix();
-    // rayDirection = rayDirection * getYawMatrix();
-
+    // With raymarching concept
     // float lambda = rayMarch(rayOrigin, rayDirection);
     // lambda /= 6.;
     // vec3 rmCol = vec3(1. - lambda);
