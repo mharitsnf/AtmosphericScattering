@@ -5,10 +5,23 @@ in vec2 texCoords;
 out vec4 FragColor;
 
 uniform sampler2D screenTexture;
+uniform sampler2D depthTexture;
+
 uniform vec3 cameraPos;
 uniform float yaw;
 uniform float pitch;
 uniform vec2 resolution;
+
+uniform vec3 sunPos;
+vec3 dirToSun = vec3(0, 0, 0);
+
+float near = .1;
+float far = 100.;
+
+vec3 planetCenter = vec3(5., 0., 0.);
+float planetRadius = 3.;
+float atmosphereRadius = 10.;
+float densityFalloff = 5.;
 
 #define FLT_MAX 3.402823466e+38
 vec2 raySphereIntersection (vec3 sphereCenter, float sphereRadius, vec3 rayOrigin, vec3 rayDirection) {
@@ -77,9 +90,60 @@ float rayMarch(vec3 rayOrigin, vec3 rayDirection) {
     return dst;
 }
 
+float linearizeDepth (float depth)
+{
+    return (2. * near * far) / (far + near - (depth * 2. - 1.) * (far - near));
+}
+
+float densityAtPoint(vec3 densitySamplePoint) {
+    float heightAboveSurface = length(densitySamplePoint - planetCenter) - planetRadius;
+    float height01 = heightAboveSurface / (atmosphereRadius - planetRadius);
+    float localDensity = exp(-height01 * densityFalloff) * (1 - height01);
+    return localDensity;
+}
+
+#define NUM_OD_POINTS 20
+float opticalDepth(vec3 rayOrigin, vec3 rayDirection, float rayLength) {
+    vec3 densitySamplePoint = rayOrigin;
+    float stepSize = rayLength / (NUM_OD_POINTS - 1);
+    float opticalDepth = 0;
+
+    for (int i = 0; i < NUM_OD_POINTS; i++) {
+        float localDensity = densityAtPoint(densitySamplePoint);
+
+        opticalDepth += localDensity * stepSize;
+        densitySamplePoint += rayDirection * stepSize;
+    }
+
+    return opticalDepth;
+}
+
+#define NUM_POINTS 30
+float calculateLight(vec3 rayOrigin, vec3 rayDirection, float rayLength)
+{
+    vec3 inScatterPoint = rayOrigin;
+    float stepSize = rayLength / (NUM_POINTS - 1);
+    float inScatteredLight = 0;
+
+    for (int i = 0; i < NUM_POINTS; i++) {
+        vec3 currentDirToSun = normalize(sunPos - inScatterPoint);
+        float sunRayLength = raySphereIntersection(planetCenter, atmosphereRadius, inScatterPoint, currentDirToSun).y;
+        float sunRayOpticalDepth = opticalDepth(inScatterPoint, currentDirToSun, sunRayLength);
+        float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
+        float transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth)); // How much light will reach the inscatter point
+        float localDensity = densityAtPoint(inScatterPoint);
+
+        inScatteredLight += localDensity * transmittance * stepSize;
+        inScatterPoint += rayDirection * stepSize;
+    }
+
+    return inScatteredLight;
+}
+
 void main()
 {
     vec4 originalColor = texture(screenTexture, texCoords.st);
+    vec4 depth = texture(depthTexture, texCoords.st);
 
     vec2 uv = (texCoords - .5);
     uv.x *= resolution.x / resolution.y;
@@ -90,22 +154,30 @@ void main()
     rayDirection = rayDirection * getPitchMatrix();
     rayDirection = rayDirection * getYawMatrix();
 
-    // With raytracing concepts
-    vec3 sphereCenter = vec3(5., 0., 0.);
-    float sphereRadius = 5.;
+    dirToSun = normalize(sunPos - rayOrigin);
 
-    vec2 hitInfo = raySphereIntersection(sphereCenter, sphereRadius, rayOrigin, rayDirection);
+    // With raytracing concepts
+
+    vec2 hitInfo = raySphereIntersection(planetCenter, atmosphereRadius, rayOrigin, rayDirection);
     float dstToAtmosphere = hitInfo.x;
     float dstThroughAtmosphere = hitInfo.y;
 
-    vec3 rtCol = vec3(dstThroughAtmosphere / (sphereRadius * 2.));
+    vec3 rtCol = vec3(dstThroughAtmosphere / (atmosphereRadius * 2.));
 
     // With raymarching concept
     // float lambda = rayMarch(rayOrigin, rayDirection);
     // lambda /= 6.;
     // vec3 rmCol = vec3(1. - lambda);
 
+    // FragColor = max(originalColor, vec4(rtCol, 1.));
+    // FragColor = vec4(dirToSun, 1.);
+
+    if (dstThroughAtmosphere > 0) {
+        vec3 pointInAtmosphere = rayOrigin + rayDirection * dstToAtmosphere;
+        float light = calculateLight(pointInAtmosphere, rayDirection, dstThroughAtmosphere);
+        FragColor = originalColor * (1 - light) + light;
+        return;
+    }
+
     FragColor = originalColor;
-    // FragColor = vec4(rmCol, 1.);
-    FragColor = vec4(max(originalColor.xyz, rtCol), 1.);
 }
