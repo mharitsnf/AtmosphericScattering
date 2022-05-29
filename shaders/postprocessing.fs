@@ -18,9 +18,9 @@ vec3 dirToSun = vec3(0, 0, 0);
 float near = .1;
 float far = 100.;
 
-vec3 planetCenter = vec3(5., 0., 0.);
+uniform vec3 planetCenter;
 float planetRadius = 3.;
-float atmosphereRadius = 10.;
+float atmosphereRadius = 8.;
 float densityFalloff = 5.;
 
 #define FLT_MAX 3.402823466e+38

@@ -24,7 +24,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 1.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.f, 25.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -37,17 +37,21 @@ float lastFrame = 0.0f;
 // glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 glm::vec3 lightPos(5.f, 20.f, .0f);
 
+// planet
+glm::vec3 planetPos(0.f, 0.f, 15.f);
+
 // rectangle that covers the whole screen, for postprocessing purposes.
 float rectangleVertices[] =
-    {
-        // Coords    // texCoords
-        1.0f, -1.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 1.0f,
+{
+	// Coords    // texCoords
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f, -1.0f,  0.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f,
 
-        1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 1.0f};
+	 1.0f,  1.0f,  1.0f, 1.0f,
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f
+};
 
 int main()
 {
@@ -68,8 +72,9 @@ int main()
     std::vector<glm::vec3> objVertices;
     std::vector<glm::vec2> objUvs;
     std::vector<glm::vec3> objNormals; // Won't be used at the moment.
-    bool res = loadOBJ("../models/object1.obj", objVertices, objUvs, objNormals);
+    bool res = loadOBJ("../models/object2.obj", objVertices, objUvs, objNormals);
 
+    // used for lighting cube
     float vertices[] = {
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
         0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
@@ -151,58 +156,49 @@ int main()
     // frame buffer for postprocessing
     // https://www.youtube.com/watch?v=QQ3jr-9Rc1o
     // ------------------------------------
+
     // Prepare framebuffer rectangle VBO and VAO
-    unsigned int postproVAO, postproVBO;
-    glGenVertexArrays(1, &postproVAO);
-    glGenBuffers(1, &postproVBO);
+	unsigned int rectVAO, rectVBO;
+	glGenVertexArrays(1, &rectVAO);
+	glGenBuffers(1, &rectVBO);
+	
+    glBindVertexArray(rectVAO);
+	
+    glBindBuffer(GL_ARRAY_BUFFER, rectVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), &rectangleVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
-    glBindVertexArray(postproVAO);
+    // Create Frame Buffer Object
+	unsigned int FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, postproVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), &rectangleVertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+	// Create Framebuffer Texture
+	unsigned int framebufferTexture;
+	glGenTextures(1, &framebufferTexture);
+	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH * 2, SCR_HEIGHT * 2, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
 
-    // Create frame buffer object
-    unsigned int FBO;
-    glGenFramebuffers(1, &FBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	// Create Render Buffer Object
+	unsigned int RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH * 2, SCR_HEIGHT * 2);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
-    // Create Framebuffer Texture
-    unsigned int framebufferTexture, depthTexture;
-    glGenTextures(1, &framebufferTexture);
-    glGenTextures(1, &depthTexture);
 
-    glBindTexture(GL_TEXTURE_2D, framebufferTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
-
-    glBindTexture(GL_TEXTURE_2D, depthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
-
-    // Create Render Buffer Object
-    unsigned int RBO;
-    glGenRenderbuffers(1, &RBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-
-    // Error checking framebuffer
-    int fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
-        cout << "Framebuffer error: " << fboStatus << endl;
+	// Error checking framebuffer
+	int fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer error: " << fboStatus << std::endl;
 
     // render loop
     // -----------
@@ -239,8 +235,8 @@ int main()
 
         // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));     // it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, planetPos); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));     // it's a bit too big for our scene, so scale it down
         objectShader.setMat4("model", model);
 
         // render the cube
@@ -262,22 +258,18 @@ int main()
 
         postProcessingShader.use();
         postProcessingShader.setInt("screenTexture", 0);
-        postProcessingShader.setInt("depthTexture", 1);
         postProcessingShader.setVec3("cameraPos", camera.Position);
         postProcessingShader.setFloat("yaw", glm::radians(camera.PPYaw));
         postProcessingShader.setFloat("pitch", glm::radians(camera.Pitch));
         postProcessingShader.setVec2("resolution", glm::vec2(SCR_WIDTH, SCR_HEIGHT));
         postProcessingShader.setVec3("sunPos", lightPos);
+        postProcessingShader.setVec3("planetCenter", planetPos);
 
         // Bind the default framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindVertexArray(postproVAO);
-        glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
-
-        glActiveTexture(GL_TEXTURE0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindVertexArray(rectVAO);
+        glDisable(GL_DEPTH_TEST);
         glBindTexture(GL_TEXTURE_2D, framebufferTexture);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, depthTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -335,7 +327,6 @@ int configure(GLFWwindow *&window)
     // -----------------------------
     // Enables the Depth Buffer
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
 
     return 0;
 }
