@@ -1,0 +1,2 @@
+﻿D:\Software\Microsoft Visual Studio\2019\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(513,5): warning MSB8028: 中间目录(AtmosphericScattering.dir\Debug\)包含从另一个项目(AtmosphericScattering.vcxproj)共享的文件。   这会导致错误的清除和重新生成行为。
+LINK : fatal error LNK1104: 无法打开文件“assimp-vc142-mtd.lib”

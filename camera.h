@@ -77,16 +77,6 @@ public:
         // Position, target, and up vectors
         return glm::lookAt(Position, Position + Front, Up);
     }
-    void PressShift(bool isPressed)
-    {
-        MovementSpeed = SPEED*2.f;
-        /*if (isPressed)
-            MovementSpeed = SPEED;
-        else
-        {
-            MovementSpeed = SPEED;
-        }*/
-    }
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {

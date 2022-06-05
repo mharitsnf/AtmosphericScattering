@@ -1,6 +1,6 @@
-^C:\USERS\BEN\DOCUMENTS\GITHUB\ATMOSPHERICSCATTERING\CMAKEFILES\B9F893FB39094A1E711438508D443FEB\GENERATE.STAMP.RULE
+^D:\DATA\COURSES\COMPUTER GRAPHICS AND INTERACTION\PROJECT\ATMOSPHERICSCATTERING\CMAKEFILES\198C7263AD9F22E6F501DAE24C4BF6D3\GENERATE.STAMP.RULE
 setlocal
-"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/Ben/Documents/GitHub/AtmosphericScattering -BC:/Users/Ben/Documents/GitHub/AtmosphericScattering --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/Ben/Documents/GitHub/AtmosphericScattering/AtmosphericScattering.sln
+"C:\Program Files\CMake\bin\cmake.exe" "-SD:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering" "-BD:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "D:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering/AtmosphericScattering.sln"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

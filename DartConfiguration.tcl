@@ -4,14 +4,14 @@
 
 
 # Configuration directories and files
-SourceDirectory: C:/Users/Ben/Documents/GitHub/AtmosphericScattering
-BuildDirectory: C:/Users/Ben/Documents/GitHub/AtmosphericScattering
+SourceDirectory: D:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering
+BuildDirectory: D:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering
 
 # Where to place the cost data store
 CostDataFile: 
 
 # Site is something like machine.domain, i.e. pragmatic.crd
-Site: Workstation
+Site: LAPTOP-TFMU4RPA
 
 # Build name is osname-revision-compiler, i.e. Linux-2.4.2-2smp-c++
 BuildName: Win32-MSBuild
@@ -21,13 +21,12 @@ LabelsForSubprojects:
 
 # Submission information
 SubmitURL: http://
-SubmitInactivityTimeout: 
 
 # Dashboard start time
 NightlyStartTime: 00:00:00 EDT
 
 # Commands for the build/test/submit cycle
-ConfigureCommand: "C:/Program Files/CMake/bin/cmake.exe" "C:/Users/Ben/Documents/GitHub/AtmosphericScattering"
+ConfigureCommand: "C:/Program Files/CMake/bin/cmake.exe" "D:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering"
 MakeCommand: "C:\Program Files\CMake\bin\cmake.exe" --build . --config "${CTEST_CONFIGURATION_TYPE}"
 DefaultCTestConfigurationType: Release
 
@@ -63,8 +62,8 @@ UpdateOptions:
 UpdateType: git
 
 # Compiler info
-Compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/bin/Hostx64/x64/cl.exe
-CompilerVersion: 19.31.31105.0
+Compiler: D:/Software/Microsoft Visual Studio/2019/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe
+CompilerVersion: 19.29.30139.0
 
 # Dynamic analysis (MemCheck)
 PurifyCommand: 
@@ -81,7 +80,7 @@ MemoryCheckCommandOptions:
 MemoryCheckSuppressionFile: 
 
 # Coverage
-CoverageCommand: C:/msys64/mingw64/bin/gcov.exe
+CoverageCommand: COVERAGE_COMMAND-NOTFOUND
 CoverageExtraFlags: -l
 
 # Testing options

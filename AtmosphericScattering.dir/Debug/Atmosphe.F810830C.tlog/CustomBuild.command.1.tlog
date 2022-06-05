@@ -1,4 +1,4 @@
-^C:\USERS\BEN\DOCUMENTS\GITHUB\ATMOSPHERICSCATTERING\CMAKELISTS.TXT
+^D:\DATA\COURSES\COMPUTER GRAPHICS AND INTERACTION\PROJECT\ATMOSPHERICSCATTERING\CMAKELISTS.TXT
 setlocal
 "C:\Program Files\CMake\bin\cmake.exe" "-SD:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering" "-BD:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering" --check-stamp-file "D:/Data/Courses/Computer Graphics and Interaction/Project/AtmosphericScattering/CMakeFiles/generate.stamp"
 if %errorlevel% neq 0 goto :cmEnd
