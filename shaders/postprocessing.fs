@@ -95,48 +95,84 @@ float linearizeDepth (float depth)
     return (2. * near * far) / (far + near - (depth * 2. - 1.) * (far - near));
 }
 
+// atmosphere is most dense close to the surface
+// exponentially less dense as higher as we go
 float densityAtPoint(vec3 densitySamplePoint) {
+    // height aboce the surface
     float heightAboveSurface = length(densitySamplePoint - planetCenter) - planetRadius;
+    // we scale the density for zero at the surface and 1 at the outer shell of the atmosphere
     float height01 = heightAboveSurface / (atmosphereRadius - planetRadius);
+    // density Fall of for controlling the exponential shape of the curve
+    // (1 - the scaled height) to avoid the curve going to 0 beyong the outer shell
     float localDensity = exp(-height01 * densityFalloff) * (1 - height01);
+
+    // returning result
     return localDensity;
 }
 
 #define NUM_OD_POINTS 20
+// calculating the average atmospheric density along a ray
+// we break the ray from the sun down into a number of points 
+// "sampling" the density at each point
+// then adding them together multiplying by the step size (that is the distance between the points)
 float opticalDepth(vec3 rayOrigin, vec3 rayDirection, float rayLength) {
+    // sample point start at rayOrigin
     vec3 densitySamplePoint = rayOrigin;
+    // calc step size
     float stepSize = rayLength / (NUM_OD_POINTS - 1);
+    // density to zero
     float opticalDepth = 0;
 
     for (int i = 0; i < NUM_OD_POINTS; i++) {
+        // calc density at curretn sample point
         float localDensity = densityAtPoint(densitySamplePoint);
-
+        
+        // add that to density multiplied by step size
         opticalDepth += localDensity * stepSize;
+        // move sample point along ray
         densitySamplePoint += rayDirection * stepSize;
     }
 
+    //return result
     return opticalDepth;
 }
 
 #define NUM_POINTS 30
+
+// Following function is to describe the view ray of the camera through the atmosphere for the current pixel
 float calculateLight(vec3 rayOrigin, vec3 rayDirection, float rayLength)
 {
+    // lights travels from the sun and get scattered in the path of the view ray (referred to as "in-scattering")
+    // set first inScatter point to rayOrigin
     vec3 inScatterPoint = rayOrigin;
+    // calculate distance between points
     float stepSize = rayLength / (NUM_POINTS - 1);
+    // total amount lights scattered in across all those points
     float inScatteredLight = 0;
 
+    // move the points along the view ray by "step size", which is the distance between the points
     for (int i = 0; i < NUM_POINTS; i++) {
         vec3 currentDirToSun = normalize(sunPos - inScatterPoint);
+        // length of sun ray
         float sunRayLength = raySphereIntersection(planetCenter, atmosphereRadius, inScatterPoint, currentDirToSun).y;
+        // depth of the atmosphere (density along a ray)
         float sunRayOpticalDepth = opticalDepth(inScatterPoint, currentDirToSun, sunRayLength);
+        // as the light travels to the camera, some light will be scattered away too
         float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
-        float transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth)); // How much light will reach the inscatter point
+        // How much light will reach the inscatter point
+            // the following expression show in a clearer way what happens:
+            // the transmittance gets updated by the amount of light that scatters from inScatter point to the camera, i.e., exp(-viewRayOpticalDepth)
+            // float transmittance = exp(-sunRayOpticalDepth) * exp(-viewRayOpticalDepth)
+            // then, we simplify the equation:
+        float transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth)); 
+        // density at a single point
+        // the greater the density, the more light will be scattered
         float localDensity = densityAtPoint(inScatterPoint);
-
+        // increase the inScattered light by localDensity * transmittance * stepSize
         inScatteredLight += localDensity * transmittance * stepSize;
         inScatterPoint += rayDirection * stepSize;
     }
-
+    // amount of light that makes it to the camera
     return inScatteredLight;
 }
 
@@ -172,12 +208,19 @@ void main()
     // FragColor = max(originalColor, vec4(rtCol, 1.));
     // FragColor = vec4(dirToSun, 1.);
 
+
+    // check if we are looking through the atmosphere
     if (dstThroughAtmosphere > 0) {
+        // if so, find the first point along the view ray that is inside the atmosphere
         vec3 pointInAtmosphere = rayOrigin + rayDirection * dstToAtmosphere;
+        // call calcLight; pass in that point with ray direction and distance through atmosphere
         float light = calculateLight(pointInAtmosphere, rayDirection, dstThroughAtmosphere);
+        // output original color blendet with the light
         FragColor = originalColor * (1 - light) + light;
         return;
     }
 
+
+    // if we are not looking through the atmosphere, then show the original Color
     FragColor = originalColor;
 }
