@@ -25,7 +25,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.f, 25.0f));
+Camera camera(glm::vec3(0.0f, 0.f, 50.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -40,6 +40,11 @@ glm::vec3 lightPos(5.f, 20.f, .0f);
 
 // planet
 glm::vec3 planetPos(0.f, 0.f, 15.f);
+
+// wavelength data
+glm::vec3 wavelengths(700, 530, 440);
+glm::vec3 scatteringCoefficients(0, 0, 0);
+float scatteringStrength = 18.;
 
 // rectangle that covers the whole screen, for postprocessing purposes.
 float rectangleVertices[] =
@@ -206,6 +211,10 @@ int main()
     if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer error: " << fboStatus << std::endl;
 
+    scatteringCoefficients.x = pow(400 / wavelengths.x, 4) * scatteringStrength;
+    scatteringCoefficients.y = pow(400 / wavelengths.y, 4) * scatteringStrength;
+    scatteringCoefficients.z = pow(400 / wavelengths.z, 4) * scatteringStrength;
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -283,6 +292,7 @@ int main()
         postProcessingShader.setVec2("resolution", glm::vec2(SCR_WIDTH, SCR_HEIGHT));
         postProcessingShader.setVec3("sunPos", lightPos);
         postProcessingShader.setVec3("planetCenter", planetPos);
+        postProcessingShader.setVec3("scatteringCoefficients", scatteringCoefficients);
 
         // Bind the default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

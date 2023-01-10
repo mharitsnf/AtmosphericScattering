@@ -19,9 +19,11 @@ float near = .1;
 float far = 100.;
 
 uniform vec3 planetCenter;
-float planetRadius = 3.;
-float atmosphereRadius = 8.;
-float densityFalloff = 5.;
+float planetRadius = 8;
+float atmosphereRadius = 12.;
+float densityFalloff = 4;
+
+uniform vec3 scatteringCoefficients;
 
 #define FLT_MAX 3.402823466e+38
 vec2 raySphereIntersection (vec3 sphereCenter, float sphereRadius, vec3 rayOrigin, vec3 rayDirection) {
@@ -140,7 +142,7 @@ float opticalDepth(vec3 rayOrigin, vec3 rayDirection, float rayLength) {
 #define NUM_POINTS 30
 
 // Following function is to describe the view ray of the camera through the atmosphere for the current pixel
-float calculateLight(vec3 rayOrigin, vec3 rayDirection, float rayLength)
+vec3 calculateLight(vec3 rayOrigin, vec3 rayDirection, float rayLength, vec3 originalCol)
 {
     // lights travels from the sun and get scattered in the path of the view ray (referred to as "in-scattering")
     // set first inScatter point to rayOrigin
@@ -148,7 +150,8 @@ float calculateLight(vec3 rayOrigin, vec3 rayDirection, float rayLength)
     // calculate distance between points
     float stepSize = rayLength / (NUM_POINTS - 1);
     // total amount lights scattered in across all those points
-    float inScatteredLight = 0;
+    vec3 inScatteredLight = vec3(0, 0, 0);
+    float viewRayOpticalDepth = 0.;
 
     // move the points along the view ray by "step size", which is the distance between the points
     for (int i = 0; i < NUM_POINTS; i++) {
@@ -158,24 +161,26 @@ float calculateLight(vec3 rayOrigin, vec3 rayDirection, float rayLength)
         // depth of the atmosphere (density along a ray)
         float sunRayOpticalDepth = opticalDepth(inScatterPoint, currentDirToSun, sunRayLength);
         // as the light travels to the camera, some light will be scattered away too
-        float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
+        viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
         // How much light will reach the inscatter point
             // the following expression show in a clearer way what happens:
             // the transmittance gets updated by the amount of light that scatters from inScatter point to the camera, i.e., exp(-viewRayOpticalDepth)
             // float transmittance = exp(-sunRayOpticalDepth) * exp(-viewRayOpticalDepth)
             // then, we simplify the equation:
-        float transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth)); 
+        vec3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatteringCoefficients);
         // density at a single point
         // the greater the density, the more light will be scattered
         float localDensity = densityAtPoint(inScatterPoint);
         // increase the inScattered light by localDensity * transmittance * stepSize
-        inScatteredLight += localDensity * transmittance * stepSize;
+        inScatteredLight += localDensity * transmittance * scatteringCoefficients * stepSize;
         inScatterPoint += rayDirection * stepSize;
     }
     // amount of light that makes it to the camera
-    return inScatteredLight;
+    float originalColTransmittance = exp(-viewRayOpticalDepth);
+    return (originalCol * originalColTransmittance) + inScatteredLight;
 }
 
+#define EPSILON 0.00001
 void main()
 {
     vec4 originalColor = texture(screenTexture, texCoords.st);
@@ -214,9 +219,9 @@ void main()
         // if so, find the first point along the view ray that is inside the atmosphere
         vec3 pointInAtmosphere = rayOrigin + rayDirection * dstToAtmosphere;
         // call calcLight; pass in that point with ray direction and distance through atmosphere
-        float light = calculateLight(pointInAtmosphere, rayDirection, dstThroughAtmosphere);
+        vec3 light = calculateLight(pointInAtmosphere, rayDirection, dstThroughAtmosphere - EPSILON * 2, originalColor.xyz);
         // output original color blendet with the light
-        FragColor = originalColor * (1 - light) + light;
+        FragColor = vec4(light, 0);
         return;
     }
 
