@@ -24,7 +24,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.f, 25.0f));
+Camera camera(glm::vec3(0.0f, 0.f, 50.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -39,6 +39,10 @@ glm::vec3 lightPos(5.f, 20.f, .0f);
 
 // planet
 glm::vec3 planetPos(0.f, 0.f, 15.f);
+
+glm::vec3 wavelengths(700, 530, 440);
+glm::vec3 scatteringCoefficients(0, 0, 0);
+float scatteringStrength = 18.;
 
 // rectangle that covers the whole screen, for postprocessing purposes.
 float rectangleVertices[] =
@@ -180,7 +184,7 @@ int main()
 	unsigned int framebufferTexture;
 	glGenTextures(1, &framebufferTexture);
 	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH * 2, SCR_HEIGHT * 2, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
@@ -191,7 +195,7 @@ int main()
 	unsigned int RBO;
 	glGenRenderbuffers(1, &RBO);
 	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH * 2, SCR_HEIGHT * 2);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
 
@@ -199,6 +203,11 @@ int main()
 	int fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Framebuffer error: " << fboStatus << std::endl;
+    
+
+    scatteringCoefficients.x = pow(400 / wavelengths.x, 4) * scatteringStrength;
+    scatteringCoefficients.y = pow(400 / wavelengths.y, 4) * scatteringStrength;
+    scatteringCoefficients.z = pow(400 / wavelengths.z, 4) * scatteringStrength;
 
     // render loop
     // -----------
@@ -264,6 +273,7 @@ int main()
         postProcessingShader.setVec2("resolution", glm::vec2(SCR_WIDTH, SCR_HEIGHT));
         postProcessingShader.setVec3("sunPos", lightPos);
         postProcessingShader.setVec3("planetCenter", planetPos);
+        postProcessingShader.setVec3("scatteringCoefficients", scatteringCoefficients);
 
         // Bind the default framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

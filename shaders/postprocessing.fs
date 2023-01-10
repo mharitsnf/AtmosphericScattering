@@ -19,9 +19,11 @@ float near = .1;
 float far = 100.;
 
 uniform vec3 planetCenter;
-float planetRadius = 3.;
-float atmosphereRadius = 8.;
-float densityFalloff = 5.;
+float planetRadius = 8;
+float atmosphereRadius = 12.;
+float densityFalloff = 4;
+
+uniform vec3 scatteringCoefficients;
 
 #define FLT_MAX 3.402823466e+38
 vec2 raySphereIntersection (vec3 sphereCenter, float sphereRadius, vec3 rayOrigin, vec3 rayDirection) {
@@ -119,27 +121,30 @@ float opticalDepth(vec3 rayOrigin, vec3 rayDirection, float rayLength) {
 }
 
 #define NUM_POINTS 30
-float calculateLight(vec3 rayOrigin, vec3 rayDirection, float rayLength)
+vec3 calculateLight(vec3 rayOrigin, vec3 rayDirection, float rayLength, vec3 originalCol)
 {
     vec3 inScatterPoint = rayOrigin;
     float stepSize = rayLength / (NUM_POINTS - 1);
-    float inScatteredLight = 0;
+    vec3 inScatteredLight = vec3(0, 0, 0);
+    float viewRayOpticalDepth = 0.;
 
     for (int i = 0; i < NUM_POINTS; i++) {
         vec3 currentDirToSun = normalize(sunPos - inScatterPoint);
         float sunRayLength = raySphereIntersection(planetCenter, atmosphereRadius, inScatterPoint, currentDirToSun).y;
         float sunRayOpticalDepth = opticalDepth(inScatterPoint, currentDirToSun, sunRayLength);
-        float viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
-        float transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth)); // How much light will reach the inscatter point
+        viewRayOpticalDepth = opticalDepth(inScatterPoint, -rayDirection, stepSize * i);
+        vec3 transmittance = exp(-(sunRayOpticalDepth + viewRayOpticalDepth) * scatteringCoefficients); // How much light will reach the inscatter point
         float localDensity = densityAtPoint(inScatterPoint);
 
-        inScatteredLight += localDensity * transmittance * stepSize;
+        inScatteredLight += localDensity * transmittance * scatteringCoefficients * stepSize;
         inScatterPoint += rayDirection * stepSize;
     }
 
-    return inScatteredLight;
+    float originalColTransmittance = exp(-viewRayOpticalDepth);
+    return (originalCol * originalColTransmittance) + inScatteredLight;
 }
 
+#define EPSILON 0.00001
 void main()
 {
     vec4 originalColor = texture(screenTexture, texCoords.st);
@@ -174,8 +179,9 @@ void main()
 
     if (dstThroughAtmosphere > 0) {
         vec3 pointInAtmosphere = rayOrigin + rayDirection * dstToAtmosphere;
-        float light = calculateLight(pointInAtmosphere, rayDirection, dstThroughAtmosphere);
-        FragColor = originalColor * (1 - light) + light;
+        vec3 light = calculateLight(pointInAtmosphere, rayDirection, dstThroughAtmosphere - EPSILON * 2, originalColor.xyz);
+        // FragColor = originalColor * (1 - light) + light;
+        FragColor = vec4(light, 0);
         return;
     }
 
