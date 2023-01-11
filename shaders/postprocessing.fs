@@ -19,9 +19,9 @@ float near = .1;
 float far = 100.;
 
 uniform vec3 planetCenter;
-float planetRadius = 8;
-float atmosphereRadius = 12.;
-float densityFalloff = 4;
+float planetRadius = 2.;
+float atmosphereRadius = 22.;
+float densityFalloff = 25.;
 
 uniform vec3 scatteringCoefficients;
 
