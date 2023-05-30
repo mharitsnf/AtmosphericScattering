@@ -28,7 +28,7 @@ Make sure that in the external folder exists three folders: **glad**, **glew**, 
 ```
 git submodule update --init --recursive
 ```
-**Project Details**
+## Project Details
 <details>
     <summary>Project Set Up</summary>
     
