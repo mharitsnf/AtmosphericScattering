@@ -30,7 +30,7 @@ git submodule update --init --recursive
 ```
 ## Project Details
 <details>
-    <summary>Project Set Up</summary>
+    <summary><b>Project Set Up</b></summary>
     
 The first thing we need to do is to set up the project environment. We will be using C++ with OpenGL for the actual application and CMake for compiling the application.
 
@@ -65,7 +65,7 @@ In the configure.sh file, we tell CMake not to add build docs in our build. We a
 </details>
 
 <details>
-    <summary>Setting Up a Window</summary>
+    <summary><b>Setting Up a Window</b></summary>
 
 After we managed to get the project working in all environments, we could start developing the application. We figure the first objective was to make a window to render our scene. Firstly, we need to set up OpenGL through GLFW and GLAD within the main function:
 
@@ -107,7 +107,7 @@ The function takes a GLFWwindow\* &window argument so we can modify the window w
 </details>
 
 <details>
-    <summary>Adding Objects to the Scene</summary>
+    <summary><b>Adding Objects to the Scene</b></summary>
 
 Once we have a window ready, the most logical step is to add objects to our scene. For us to actually have some objects in our scene, there are two main things we need to take care of first: setting up the object’s vertices and setting up the camera for calculating the projection. We worked on setting up the object’s vertices first.
 
@@ -187,7 +187,7 @@ And here is the final result of the lighting cube:![](images/Aspose.Words.336fa7
 </details>
 
 <details>
-    <summary>Loading the Planet</summary>
+    <summary><b>Loading the Planet</b></summary>
 
 A 3D model comes in various formats, such as .fbx and .obj. For the planet, we intend to use a sphere. But in order to create a sphere in our scene, we need to make a loader for one of the 3D model extensions. We decided to create a loader for the .obj file due to its simplicity.
 
@@ -209,7 +209,7 @@ We added a basic lighting model for the planet so that it could have a simple li
 </details>
 
 <details>
-    <summary>Adding Post-processing Shader</summary>
+    <summary><b>Adding Post-processing Shader</b></summary>
 
 As the atmospheric scattering effect will be displayed through post processing shaders, we need to set it up first. The basic idea is to render the camera view to a rectangle and display the rectangle to the viewport. By having a rectangle in between the rendering process, we can add a shader to the rectangle to do various stuff. Firstly, we need to specify the vertices for this rectangle early in the code:
 
@@ -229,7 +229,7 @@ And then, we can reset the framebuffer to the default framebuffer after we have 
 </details>
 
 <details>
-    <summary>Creating the Atmosphere</summary>
+    <summary><b>Creating the Atmosphere</b></summary>
 
 Setting up the camera within the shader
 
@@ -281,7 +281,7 @@ And the result is as follows:
 </details>
 
 <details>
-    <summary>Implementing the color</summary>
+    <summary><b>Implementing the color</b></summary>
 
 The shader is running, but it only accepts and returns a float. If we want to have the function behave properly, scattering the higher wavelengths more than the lower wavelengths, we need to adjust the function. In the C++, we can add a vector3 that holds the wavelength and scattering information:
 
