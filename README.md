@@ -12,6 +12,7 @@ In this project we set out to create a simulation of the atmosphere in terms of 
 
 ## Project Links
 [Link to project blog](https://docs.google.com/document/d/1VtaNd2OQC4ndTJ4I_rilJaA5PS81mg9ZAMXCypCPn2M/edit?usp=sharing)
+
 [Link to project report](https://github.com/mharitsnf/AtmosphericScattering/blob/b4fffe57dcda326b0b3a82ca3d4fc94d938262e3/DH2323___Project_Report%20(1).pdf)
 
 ## How to run the project?
